@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lynx Agency · Análise Estratégica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:       #F8FAFB;
+  --white:    #FFFFFF;
+  --surface:  #FFFFFF;
+  --surface2: #F0F4F8;
+  --border:   #E2E8F0;
+  --border2:  #CBD5E1;
+  --ink:      #0D1117;
+  --ink2:     #1C2333;
+  --ink3:     #2E3A4E;
+  --muted:    #5C6B80;
+  --muted2:   #8896AA;
+  /* cores do cliente — o n8n injeta estas variáveis */
+  --cl:       #0D9E82;   /* cor primária do cliente  */
+  --cl-dim:   rgba(13,158,130,.10);
+  --cl-mid:   rgba(13,158,130,.18);
+  --cl-dark:  #076E59;
+  /* semáforo fixo */
+  --red:      #E53E3E;
+  --red-dim:  rgba(229,62,62,.08);
+  --amber:    #D97706;
+  --amber-dim:rgba(217,119,6,.08);
+  --green:    #059669;
+  --green-dim:rgba(5,150,105,.08);
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink)}
+body{font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased}
+
+/* ── DECK ─────────────────────────────────────────────────────────────────── */
+.deck{width:100vw;height:100vh;position:relative;overflow:hidden}
+.slide{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  padding:48px 64px 56px;
+  opacity:0;pointer-events:none;
+  transition:opacity .45s ease,transform .45s ease;
+  transform:translateX(48px);
+}
+.slide.active{opacity:1;pointer-events:all;transform:none}
+.slide.exit{opacity:0;transform:translateX(-48px)}
+.slide>*{position:relative;z-index:1}
+
+/* ── PROGRESS ─────────────────────────────────────────────────────────────── */
+.prog-wrap{position:fixed;top:0;left:0;right:0;height:3px;z-index:300;background:var(--border)}
+.prog-fill{height:100%;background:var(--cl);transition:width .4s ease}
+
+/* ── CORNER BRAND ─────────────────────────────────────────────────────────── */
+.corner{
+  position:fixed;top:20px;right:28px;z-index:300;
+  display:flex;align-items:center;gap:7px;
+  font-size:12px;font-weight:600;color:var(--muted2);letter-spacing:.06em;
+}
+.corner-dot{width:7px;height:7px;border-radius:50%;background:var(--cl)}
+
+/* ── NAV — auto-hide ──────────────────────────────────────────────────────── */
+.nav{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:14px;z-index:200;
+  background:rgba(255,255,255,.92);backdrop-filter:blur(16px);
+  border:1px solid var(--border2);border-radius:100px;
+  padding:8px 18px;box-shadow:0 4px 20px rgba(0,0,0,.08);
+  transition:opacity .4s,transform .4s;
+}
+.nav.hidden{opacity:0;transform:translateX(-50%) translateY(12px);pointer-events:none}
+.dots{display:flex;gap:7px;align-items:center}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--border2);cursor:pointer;transition:all .25s}
+.dot.on{width:18px;border-radius:3px;background:var(--cl)}
+.nbtn{
+  width:32px;height:32px;border-radius:50%;border:1px solid var(--border2);
+  background:transparent;color:var(--muted);cursor:pointer;font-size:13px;
+  display:flex;align-items:center;justify-content:center;transition:border-color .2s,color .2s;
+}
+.nbtn:hover{border-color:var(--cl);color:var(--cl)}
+.nbtn:disabled{opacity:.25;cursor:default}
+.nctr{font-size:11px;color:var(--muted2);min-width:32px;text-align:center;font-weight:500}
+
+/* ── EYEBROW ──────────────────────────────────────────────────────────────── */
+.ey{
+  font-size:10px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--cl);margin-bottom:14px;display:flex;align-items:center;gap:10px;
+}
+.ey::before{content:'';width:18px;height:2px;background:var(--cl);flex-shrink:0}
+
+/* ── HEADINGS ─────────────────────────────────────────────────────────────── */
+h1{font-family:'Instrument Serif',serif;font-size:clamp(40px,5vw,72px);line-height:1.05;letter-spacing:-.02em}
+h2{font-family:'Instrument Serif',serif;font-size:clamp(28px,3vw,42px);line-height:1.1;letter-spacing:-.015em}
+.cl{color:var(--cl)}
+.mu{color:var(--muted)}
+.red{color:var(--red)}
+.amb{color:var(--amber)}
+.grn{color:var(--green)}
+
+/* ── LAYOUT HELPERS ───────────────────────────────────────────────────────── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;flex:1}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;flex:1}
+.col{display:flex;flex-direction:column;gap:14px}
+.f1{flex:1}
+.mt{margin-top:auto}
+
+/* ── CARD ─────────────────────────────────────────────────────────────────── */
+.c{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 22px}
+.c.cl-b{border-color:var(--cl);border-width:1.5px;background:var(--cl-dim)}
+.c.red-b{border-color:rgba(229,62,62,.3);background:var(--red-dim)}
+.c.amb-b{border-color:rgba(217,119,6,.25);background:var(--amber-dim)}
+.c.bg2{background:var(--surface2);border-color:var(--border)}
+.clbl{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);margin-bottom:8px}
+.cnum{font-family:'Instrument Serif',serif;font-size:36px;line-height:1;color:var(--ink)}
+.csub{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.5;font-weight:300}
+
+/* ── PILLS ────────────────────────────────────────────────────────────────── */
+.p{display:inline-flex;align-items:center;gap:5px;padding:3px 12px;border-radius:100px;font-size:11px;font-weight:600}
+.p.g{background:var(--green-dim);color:var(--green);border:1px solid rgba(5,150,105,.2)}
+.p.r{background:var(--red-dim);color:var(--red);border:1px solid rgba(229,62,62,.2)}
+.p.a{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(217,119,6,.2)}
+.p.cl{background:var(--cl-dim);color:var(--cl);border:1px solid var(--cl-mid)}
+
+/* ── TABLE ────────────────────────────────────────────────────────────────── */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);padding:9px 12px;text-align:left;border-bottom:1px solid var(--border)}
+.tbl td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:middle;line-height:1.4}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr.hi td{background:var(--cl-dim)}
+.tbl tr.hi td:first-child{border-left:2px solid var(--cl)}
+
+/* ── REVIEW CARD ──────────────────────────────────────────────────────────── */
+.rv{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px}
+.rv.neg{border-color:rgba(229,62,62,.25);background:var(--red-dim)}
+.rv-stars{font-size:13px;margin-bottom:7px;color:var(--amber)}
+.rv-txt{font-size:13px;color:var(--muted);line-height:1.6;font-style:italic;font-weight:300}
+.rv-meta{font-size:11px;color:var(--muted2);margin-top:8px}
+
+/* ── SWOT ─────────────────────────────────────────────────────────────────── */
+.swot{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:12px;flex:1}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px}
+.sl{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;margin-bottom:10px}
+.sl.f{color:var(--green)}.sl.w{color:var(--red)}.sl.o{color:var(--cl)}.sl.t{color:var(--amber)}
+.si{font-size:13px;color:var(--muted);line-height:1.55;padding:5px 0;border-bottom:1px solid var(--border);display:flex;gap:7px;font-weight:300}
+.si:last-child{border-bottom:none}
+.sc.f .si::before{content:'→';color:var(--green);flex-shrink:0}
+.sc.w .si::before{content:'→';color:var(--red);flex-shrink:0}
+.sc.o .si::before{content:'→';color:var(--cl);flex-shrink:0}
+.sc.t .si::before{content:'→';color:var(--amber);flex-shrink:0}
+
+/* ── LIVE INPUT ───────────────────────────────────────────────────────────── */
+.lp{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px}
+.lp-t{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--cl);margin-bottom:14px}
+.lr{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ll{font-size:13px;color:var(--muted);flex:1;font-weight:300}
+.li{
+  background:var(--white);border:1px solid var(--border2);border-radius:8px;
+  padding:7px 10px;font-size:14px;font-family:'DM Sans',sans-serif;
+  color:var(--ink);outline:none;width:90px;text-align:right;transition:border-color .2s;
+}
+.li:focus{border-color:var(--cl)}
+
+/* ── SERVICE ROW ──────────────────────────────────────────────────────────── */
+.sr{display:flex;align-items:flex-start;gap:14px;padding:13px 0;border-bottom:1px solid var(--border)}
+.sr:last-child{border-bottom:none}
+.si2{width:36px;height:36px;border-radius:9px;background:var(--cl-dim);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px}
+.sn{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:3px}
+.sd{font-size:12px;color:var(--muted);line-height:1.5;font-weight:300}
+
+/* ── CTA BUTTON ───────────────────────────────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--cl);color:white;
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;
+  padding:14px 28px;border-radius:12px;border:none;cursor:pointer;
+  transition:background .2s,transform .15s;letter-spacing:.01em;text-decoration:none;
+}
+.btn:hover{background:var(--cl-dark);transform:translateY(-2px)}
+.btn-ghost{
+  display:inline-flex;align-items:center;gap:8px;
+  background:transparent;color:var(--muted);
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;
+  padding:14px 24px;border-radius:12px;border:1.5px solid var(--border2);cursor:pointer;
+  transition:border-color .2s,color .2s;
+}
+.btn-ghost:hover{border-color:var(--cl);color:var(--cl)}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* SLIDE 1 · CAPA                                                              */
+/* ─────────────────────────────────────────────────────────────────────────── */
+#s1{justify-content:center;background:var(--white)}
+#s1::before{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 55% 60% at 100% 0%, var(--cl-dim) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 40% at 0% 100%, rgba(13,158,130,.05) 0%, transparent 60%);
+}
+.capa-tag{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--cl-dim);border:1px solid var(--cl-mid);border-radius:100px;
+  padding:5px 16px;font-size:11px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--cl);margin-bottom:28px;
+}
+.capa-tag::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--cl);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+.capa-line{width:56px;height:2px;background:var(--cl);margin-bottom:28px;opacity:.4}
+.capa-sub{font-size:17px;color:var(--muted);font-weight:300;line-height:1.7;max-width:520px;margin-bottom:36px}
+.capa-meta{display:flex;gap:28px;flex-wrap:wrap}
+.cm{font-size:13px;color:var(--muted2);display:flex;align-items:center;gap:7px;font-weight:300}
+.cm::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--cl);flex-shrink:0;opacity:.6}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* SLIDE BACKGROUNDS - alternating light/very-light                           */
+/* ─────────────────────────────────────────────────────────────────────────── */
+#s2,#s4,#s6,#s8{background:var(--bg)}
+#s3,#s5,#s7{background:var(--white)}
+</style>
+</head>
+<body>
+
+<div class="prog-wrap"><div class="prog-fill" id="prog" style="width:12.5%"></div></div>
+<div class="corner"><span class="corner-dot"></span>LYNX AGENCY</div>
+
+<div class="deck">
+
+<!-- ══ S1 CAPA ══════════════════════════════════════════════════════════════ -->
+<div class="slide active" id="s1">
+  <div class="capa-tag">Análise preparada exclusivamente para esta reunião</div>
+  <div class="capa-line"></div>
+  <h1 style="margin-bottom:10px">Bem-vindo,<br><span class="cl" id="client-name">Clínica Dentária Sorrir Bem</span></h1>
+  <p class="capa-sub" id="capa-desc">Identificámos 4 oportunidades concretas de crescimento. Os próximos 15 minutos podem mudar os próximos 12 meses.</p>
+  <div class="capa-meta">
+    <span class="cm" id="meta-setor">Clínicas · Medicina Dentária</span>
+    <span class="cm" id="meta-local">Curia, Anadia</span>
+    <span class="cm" id="meta-data">Junho 2026</span>
+    <span class="cm">lynxagency.pt</span>
+  </div>
+</div>
+
+<!-- ══ S2 RAIO-X ════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s2">
+  <div class="ey">Diagnóstico · Presença Digital Atual</div>
+  <h2 style="margin-bottom:5px">O que encontrámos <em style="color:var(--cl)">antes de hoje</em></h2>
+  <p class="mu" style="font-size:14px;font-weight:300;margin-bottom:20px">Dados públicos recolhidos nas últimas 24h. Nada foi inventado.</p>
+  <div class="g2">
+    <div class="col">
+      <div class="c f1">
+        <div class="clbl">Google Maps</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+          <span style="color:var(--amber);font-size:17px;letter-spacing:2px" id="stars-display">★★★★☆</span>
+          <span style="font-family:'Instrument Serif',serif;font-size:28px;line-height:1" id="rating-num">3.8</span>
+          <span class="p a" id="rating-pill">Abaixo da média</span>
+        </div>
+        <div style="font-size:13px;color:var(--muted);font-weight:300;line-height:1.65">
+          <strong id="reviews-num" style="color:var(--ink)">47 reviews</strong> · Última resposta há <strong id="last-reply" style="color:var(--red)">8 meses</strong><br>
+          Perfil incompleto: sem horário atualizado, sem fotos recentes.
+        </div>
+      </div>
+      <div class="c red-b">
+        <div class="clbl">Website</div>
+        <div style="font-size:15px;font-weight:600;color:var(--red);margin-bottom:5px" id="website-status">Não encontrado</div>
+        <div style="font-size:13px;color:var(--muted);font-weight:300;line-height:1.6" id="website-detail">Sem agendamento online. Leads que pesquisam fora de horário perdem-se para a concorrência.</div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="c f1">
+        <div class="clbl">Redes Sociais &amp; Publicidade</div>
+        <div style="display:flex;flex-direction:column;gap:0" id="social-list">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:13px;color:var(--muted)">Instagram</span><span class="p a">Último post: 4 meses</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:13px;color:var(--muted)">Facebook</span><span class="p r">Sem atividade</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0">
+            <span style="font-size:13px;color:var(--muted)">Google Ads</span><span class="p r">Não detetado</span>
+          </div>
+        </div>
+      </div>
+      <div class="c amb-b">
+        <div class="clbl">Agendamento Online</div>
+        <div style="font-family:'Instrument Serif',serif;font-size:28px;color:var(--amber);margin-bottom:5px">Não existe</div>
+        <div style="font-size:13px;color:var(--muted);font-weight:300">Cada marcação depende do telefone. Fora de horário, o doente vai à concorrência.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S3 REVIEWS ════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s3">
+  <div class="ey">Diagnóstico · Voz dos Clientes</div>
+  <h2 style="margin-bottom:20px">O que os seus doentes <em style="color:var(--cl)">dizem no Google</em></h2>
+  <div class="g2">
+    <div class="col">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--green);margin-bottom:6px">✓ Pontos fortes</div>
+      <div class="rv">
+        <div class="rv-stars" id="rv-pos-1-stars">★★★★★ <span style="color:var(--muted2);font-size:11px">há 2 semanas</span></div>
+        <div class="rv-txt" id="rev-pos-1">"Excelente atendimento, médicos muito competentes. Recomendo a toda a gente da zona."</div>
+        <div class="rv-meta" id="rev-pos-1-meta">— Maria F., Google</div>
+      </div>
+      <div class="rv">
+        <div class="rv-stars" id="rv-pos-2-stars">★★★★★ <span style="color:var(--muted2);font-size:11px">há 1 mês</span></div>
+        <div class="rv-txt" id="rev-pos-2">"Clínica limpa e organizada. Nunca esperamos mais de 10 minutos."</div>
+        <div class="rv-meta" id="rev-pos-2-meta">— João A., Google</div>
+      </div>
+      <div class="c cl-b mt" style="margin-top:auto">
+        <div style="font-size:13px;color:var(--muted);font-weight:300;line-height:1.6">A qualidade clínica é reconhecida. O problema está na <strong style="color:var(--ink)">visibilidade</strong> e no <strong style="color:var(--ink)">acesso</strong>, não no serviço.</div>
+      </div>
+    </div>
+    <div class="col">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--red);margin-bottom:6px">⚠ Pontos de melhoria</div>
+      <div class="rv neg">
+        <div class="rv-stars" style="color:var(--amber)">★★☆☆☆ <span style="color:var(--muted2);font-size:11px">há 3 meses</span></div>
+        <div class="rv-txt" id="rev-neg-1">"Difícil marcar por telefone. Toca mas ninguém atende. Acabei por ir a outra clínica."</div>
+        <div class="rv-meta" id="rev-neg-1-meta">— Ana M. · <strong style="color:var(--red)">Sem resposta da clínica</strong></div>
+      </div>
+      <div class="rv neg">
+        <div class="rv-stars" style="color:var(--amber)">★★★☆☆ <span style="color:var(--muted2);font-size:11px">há 5 meses</span></div>
+        <div class="rv-txt" id="rev-neg-2">"Boa clínica mas precisam de marcação online. Ligar para marcar é complicado."</div>
+        <div class="rv-meta" id="rev-neg-2-meta">— Carlos N. · <strong style="color:var(--red)">Sem resposta da clínica</strong></div>
+      </div>
+      <div class="c" style="background:var(--red-dim);border-color:rgba(229,62,62,.2);margin-top:auto">
+        <div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:7px;letter-spacing:.1em;text-transform:uppercase">💡 Resposta sugerida (IA)</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.65;font-style:italic">"Agradecemos o seu comentário. Lamentamos a dificuldade. Estamos a implementar marcação online 24h. Aguardamos uma nova oportunidade."</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S4 CONCORRÊNCIA ═══════════════════════════════════════════════════════ -->
+<div class="slide" id="s4">
+  <div class="ey">Diagnóstico · Mercado Local</div>
+  <h2 style="margin-bottom:5px">A concorrência a <em style="color:var(--cl)" id="concurr-radius">10km</em></h2>
+  <p class="mu" style="font-size:14px;font-weight:300;margin-bottom:18px">Dados do Google Maps. A verde está o que a Lynx resolve em 3 semanas.</p>
+  <div style="flex:1;display:flex;flex-direction:column;gap:0;overflow:hidden">
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;flex:1">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Clínica</th><th>Rating</th><th>Reviews</th>
+            <th>Website</th><th>Marcação Online</th><th>Resp. Reviews</th><th>Google Ads</th>
+          </tr>
+        </thead>
+        <tbody id="concurr-table">
+          <tr class="hi">
+            <td><strong id="t-client">Sorrir Bem (você)</strong></td>
+            <td><span class="amb" id="t-rating">⭐ 3.8</span></td>
+            <td id="t-reviews">47</td>
+            <td><span class="red">✗</span></td><td><span class="red">✗</span></td>
+            <td><span class="red">✗</span></td><td><span class="red">✗</span></td>
+          </tr>
+          <tr><td id="c1-name">Clínica Dental Curia</td><td class="grn">⭐ 4.6</td><td>112</td><td><span class="grn">✓</span></td><td><span class="grn">✓</span></td><td><span class="grn">✓</span></td><td><span class="amb">~</span></td></tr>
+          <tr><td id="c2-name">Dentista Dr. Fonseca</td><td class="amb">⭐ 4.2</td><td>89</td><td><span class="grn">✓</span></td><td><span class="red">✗</span></td><td><span class="amb">~</span></td><td><span class="red">✗</span></td></tr>
+          <tr><td id="c3-name">Orto Clínica Anadia</td><td class="grn">⭐ 4.4</td><td>67</td><td><span class="grn">✓</span></td><td><span class="amb">~</span></td><td><span class="red">✗</span></td><td><span class="red">✗</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="c cl-b" style="margin-top:14px;flex:none">
+      <div style="display:flex;gap:28px;align-items:center">
+        <div style="font-size:13px;color:var(--muted);font-weight:300;flex:1;line-height:1.65">O líder local tem <strong style="color:var(--ink)">4.6 ⭐ e agendamento online</strong>. A diferença não é a qualidade clínica — é a infraestrutura digital. A Lynx fecha esse gap em <strong style="color:var(--ink)">3 semanas</strong>.</div>
+        <div style="text-align:center;flex-shrink:0">
+          <div style="font-family:'Instrument Serif',serif;font-size:36px;color:var(--cl)" id="gap-val">+0.8⭐</div>
+          <div style="font-size:11px;color:var(--muted2)">distância para o líder</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S5 SWOT ═══════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s5">
+  <div class="ey">Estratégia · Análise SWOT</div>
+  <h2 style="margin-bottom:18px">A sua clínica — <em style="color:var(--cl)">com e sem a Lynx</em></h2>
+  <div class="swot">
+    <div class="sc f">
+      <div class="sl f">Forças</div>
+      <div class="si" id="sw-f1">Qualidade clínica reconhecida nas reviews positivas</div>
+      <div class="si" id="sw-f2">Localização com mercado em crescimento na região</div>
+      <div class="si" id="sw-f3">Clientes fidelizados com boa retenção</div>
+    </div>
+    <div class="sc w">
+      <div class="sl w">Fraquezas → Lynx resolve</div>
+      <div class="si" id="sw-w1">Sem agendamento online — leads perdidos fora de horário</div>
+      <div class="si" id="sw-w2">Reviews negativas sem resposta há meses</div>
+      <div class="si" id="sw-w3">Presença digital mínima face à concorrência</div>
+    </div>
+    <div class="sc o">
+      <div class="sl o">Oportunidades</div>
+      <div class="si" id="sw-o1">Agendamento 24/7 captura leads que hoje se perdem</div>
+      <div class="si" id="sw-o2">Gestão de reviews melhora rating em 3 a 6 meses</div>
+      <div class="si" id="sw-o3">AI SEO posiciona a clínica nas pesquisas de IA</div>
+    </div>
+    <div class="sc t">
+      <div class="sl t">Ameaças → Lynx neutraliza</div>
+      <div class="si" id="sw-t1">Concorrente a 4.6⭐ com sistema digital completo</div>
+      <div class="si" id="sw-t2">Doentes pesquisam no ChatGPT — sem AI SEO não aparecem</div>
+      <div class="si" id="sw-t3">Cada mês sem automação é receita perdida acumulada</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S6 CALCULADORA AO VIVO ════════════════════════════════════════════════ -->
+<div class="slide" id="s6">
+  <div class="ey">Em direto · Calculadora de Impacto</div>
+  <h2 style="margin-bottom:18px">Vamos calcular <em style="color:var(--cl)">os seus números reais</em></h2>
+  <div class="g2">
+    <div class="col">
+      <div class="lp">
+        <div class="lp-t">Insira os dados em direto</div>
+        <div class="lr"><label class="ll">Consultas por semana</label><input class="li" type="number" id="li-consultas" value="40" min="1"></div>
+        <div class="lr"><label class="ll">Não comparências / semana</label><input class="li" type="number" id="li-faltas" value="7" min="0"></div>
+        <div class="lr"><label class="ll">Valor médio por consulta (€)</label><input class="li" type="number" id="li-valor" value="65" min="1"></div>
+        <div class="lr"><label class="ll">Nº de administrativos</label><input class="li" type="number" id="li-admin" value="1" min="0"></div>
+        <div class="lr"><label class="ll">Horas/dia em chamadas</label><input class="li" type="number" id="li-horas" value="2" min="0" step="0.5"></div>
+        <div class="lr"><label class="ll">Salário bruto admin (€/mês)</label><input class="li" type="number" id="li-salario" value="900" min="820" step="10"></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="g2" style="flex:none">
+        <div class="c" style="text-align:center">
+          <div class="clbl">Perda com faltas/mês</div>
+          <div class="cnum red" id="out-faltas-m">—</div>
+        </div>
+        <div class="c" style="text-align:center">
+          <div class="clbl">Custo administrativo/mês</div>
+          <div class="cnum amb" id="out-admin-m">—</div>
+        </div>
+      </div>
+      <div class="c bg2 f1">
+        <div class="clbl">Impacto total estimado</div>
+        <div style="display:flex;gap:18px;align-items:baseline;margin-bottom:14px;flex-wrap:wrap">
+          <div><div style="font-size:11px;color:var(--muted2);margin-bottom:3px">Por mês</div><div style="font-family:'Instrument Serif',serif;font-size:36px;color:var(--red)" id="out-total-m">—</div></div>
+          <div style="color:var(--border2);font-size:18px">·</div>
+          <div><div style="font-size:11px;color:var(--muted2);margin-bottom:3px">Por ano</div><div style="font-family:'Instrument Serif',serif;font-size:36px;color:var(--red)" id="out-total-a">—</div></div>
+        </div>
+        <div style="height:1px;background:var(--border);margin-bottom:14px"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div><div style="font-size:11px;color:var(--muted2);margin-bottom:3px">Investimento Lynx</div><div style="font-family:'Instrument Serif',serif;font-size:20px;color:var(--cl)" id="out-invest">249€/mês</div></div>
+          <div style="text-align:right"><div style="font-size:11px;color:var(--muted2);margin-bottom:3px">Setup recuperado em</div><div style="font-family:'Instrument Serif',serif;font-size:20px;color:var(--cl)" id="out-payback">—</div></div>
+        </div>
+        <div style="padding-top:12px;border-top:1px solid var(--border);font-size:13px;color:var(--muted)">ROI no 1.º ano: <strong style="color:var(--cl);font-size:17px" id="out-roi">—</strong></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S7 PROPOSTA ═══════════════════════════════════════════════════════════ -->
+<div class="slide" id="s7">
+  <div class="ey">Solução Recomendada</div>
+  <h2 style="margin-bottom:5px">O que a Lynx implementa <em style="color:var(--cl)">para si</em></h2>
+  <p class="mu" style="font-size:14px;font-weight:300;margin-bottom:18px">Com base nos dados desta reunião.</p>
+  <div class="g2">
+    <div class="col">
+      <div class="c f1">
+        <div class="clbl">Plano Crescimento · O que está incluído</div>
+        <div id="services-list">
+          <div class="sr"><div class="si2">🌐</div><div><div class="sn">Website profissional com AI SEO</div><div class="sd">Design médico, RGPD, mobile-first. Aparece no Google, ChatGPT e Perplexity.</div></div></div>
+          <div class="sr"><div class="si2">📅</div><div><div class="sn">Agendamento online 24/7</div><div class="sd">Múltiplos médicos e agendas. Marcação via site, WhatsApp e email.</div></div></div>
+          <div class="sr"><div class="si2">📲</div><div><div class="sn">Confirmações SMS + WhatsApp automáticos</div><div class="sd">48h antes e 2h antes. Lista de espera ativada automaticamente.</div></div></div>
+          <div class="sr"><div class="si2">🤖</div><div><div class="sn">Chatbot de triagem e atendimento</div><div class="sd">Qualifica o doente. Responde fora de horário. Integra WhatsApp Business.</div></div></div>
+          <div class="sr"><div class="si2">📊</div><div><div class="sn">Relatório mensal de desempenho</div><div class="sd">Faltas evitadas, marcações, leads, rating Google.</div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="c cl-b">
+        <div class="clbl">Investimento</div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:14px;color:var(--muted)">Setup (2 prestações)</span>
+          <span style="font-weight:600;font-size:15px" id="prop-setup">Desde 2.500€</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0">
+          <span style="font-size:14px;color:var(--muted)">Mensalidade</span>
+          <span style="font-weight:600;font-size:15px;color:var(--cl)" id="prop-mensal">249€/mês</span>
+        </div>
+      </div>
+      <div class="c f1">
+        <div class="clbl">Cronograma · 3 semanas</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;gap:10px"><span style="font-family:'Instrument Serif',serif;font-size:16px;color:var(--cl);width:24px;flex-shrink:0">S1</span><span style="font-size:13px;color:var(--muted);font-weight:300">Assinatura e recolha de conteúdos</span></div>
+          <div style="display:flex;gap:10px"><span style="font-family:'Instrument Serif',serif;font-size:16px;color:var(--cl);width:24px;flex-shrink:0">S2</span><span style="font-size:13px;color:var(--muted);font-weight:300">Desenvolvimento e configuração das automações</span></div>
+          <div style="display:flex;gap:10px"><span style="font-family:'Instrument Serif',serif;font-size:16px;color:var(--cl);width:24px;flex-shrink:0">S3</span><span style="font-size:13px;color:var(--muted);font-weight:300">Publicação, testes e formação (1 hora)</span></div>
+          <div style="display:flex;gap:10px"><span style="font-family:'Instrument Serif',serif;font-size:16px;color:var(--cl);width:24px;flex-shrink:0">30d</span><span style="font-size:13px;color:var(--muted);font-weight:300">Primeiros resultados mensuráveis garantidos</span></div>
+        </div>
+      </div>
+      <div class="c" style="background:var(--cl-dim);border-color:var(--cl-mid)">
+        <div style="font-size:13px;color:var(--muted);line-height:1.65;font-weight:300">Cancelamento a qualquer momento, sem penalizações. O website fica sempre seu. <strong style="color:var(--ink)">Satisfação garantida nos primeiros 30 dias.</strong></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S8 FECHO ══════════════════════════════════════════════════════════════ -->
+<div class="slide" id="s8">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;max-width:680px">
+    <div class="ey">Decisão</div>
+    <p style="font-size:16px;color:var(--muted);font-weight:300;margin-bottom:8px">Cada mês que espera custa-lhe</p>
+    <div style="font-family:'Instrument Serif',serif;font-size:clamp(52px,7vw,88px);line-height:1;color:var(--red);margin-bottom:20px" id="fecho-custo">—/mês</div>
+    <p style="font-size:17px;color:var(--muted);font-weight:300;line-height:1.7;max-width:540px;margin-bottom:6px">Os números que calculámos juntos são conservadores. O sistema paga-se em <strong style="color:var(--cl)" id="fecho-payback">—</strong>. A partir daí, é poupança líquida todos os meses.</p>
+    <p style="font-size:13px;color:var(--muted2);font-weight:300;margin-bottom:28px">Sem compromisso a longo prazo. Cancelamento a qualquer momento. O website fica sempre seu.</p>
+    <div style="display:flex;gap:14px;flex-wrap:wrap">
+      <button class="btn" onclick="alert('Proposta enviada! O Francisco entra em contacto para confirmar.')">✓ Avançar com a Lynx</button>
+      <button class="btn-ghost" onclick="window.print()">Guardar proposta</button>
+    </div>
+  </div>
+  <div style="position:absolute;right:48px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:.04">
+    <div style="font-family:'Instrument Serif',serif;font-size:180px;line-height:1;color:var(--cl)">Lynx</div>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<!-- ══ NAV ══════════════════════════════════════════════════════════════════ -->
+<div class="nav" id="nav">
+  <button class="nbtn" id="btn-prev" onclick="go(-1)" disabled>←</button>
+  <div class="dots" id="nav-dots"></div>
+  <span class="nctr" id="counter">1 / 8</span>
+  <button class="nbtn" id="btn-next" onclick="go(1)">→</button>
+</div>
+
+<script>
+/* ══ DADOS DO CLIENTE — o n8n substitui este bloco ══════════════════════════
+   Cor do cliente: extraída do logo pelo agente de IA
+   Formato hex sem # para facilitar a injeção via regex no n8n
+   ════════════════════════════════════════════════════════════════════════ */
+const CLIENTE = {
+  nome:          "Clínica Dentária Sorrir Bem",
+  cor:           "0D9E82",   /* hex sem # — extraído do logo pelo n8n */
+  corDark:       "076E59",
+  setor:         "Clínicas · Medicina Dentária",
+  local:         "Curia, Anadia",
+  rating:        3.8,
+  reviews:       47,
+  ultimaResposta:"8 meses",
+  website:       false,
+  concorrentes:[
+    {nome:"Clínica Dental Curia", rating:4.6,reviews:112,web:true, agenda:true, respReviews:true, ads:false},
+    {nome:"Dentista Dr. Fonseca", rating:4.2,reviews:89, web:true, agenda:false,respReviews:false,ads:false},
+    {nome:"Orto Clínica Anadia",  rating:4.4,reviews:67, web:true, agenda:false,respReviews:false,ads:false},
+  ],
+  reviewsPos:[
+    {texto:"Excelente atendimento, médicos muito competentes. Recomendo a toda a gente da zona.", autor:"Maria F.", quando:"há 2 semanas"},
+    {texto:"Clínica limpa e organizada. Nunca esperamos mais de 10 minutos.", autor:"João A.", quando:"há 1 mês"},
+  ],
+  reviewsNeg:[
+    {texto:"Difícil marcar por telefone. Toca mas ninguém atende. Acabei por ir a outra clínica.", autor:"Ana M.", quando:"há 3 meses"},
+    {texto:"Boa clínica mas precisam de marcação online. Ligar é complicado.", autor:"Carlos N.", quando:"há 5 meses"},
+  ],
+  swot:{
+    f:["Qualidade clínica reconhecida nas reviews positivas","Localização com mercado em crescimento na região","Clientes fidelizados com boa retenção"],
+    w:["Sem agendamento online — leads perdidos fora de horário","Reviews negativas sem resposta há meses","Presença digital mínima face à concorrência"],
+    o:["Agendamento 24/7 captura leads que hoje se perdem","Gestão de reviews melhora rating em 3 a 6 meses","AI SEO posiciona a clínica nas pesquisas de IA"],
+    t:["Concorrente a 4.6⭐ com sistema digital completo","Doentes pesquisam no ChatGPT — sem AI SEO não aparecem","Cada mês sem automação é receita perdida acumulada"],
+  },
+  setup:"2.500€", mensal:"249€",
+};
+
+/* ══ APLICAR COR DO CLIENTE ═════════════════════════════════════════════════ */
+function applyColor(){
+  const r=document.documentElement.style;
+  r.setProperty('--cl',      '#'+CLIENTE.cor);
+  r.setProperty('--cl-dark', '#'+CLIENTE.corDark);
+  r.setProperty('--cl-dim',  'rgba('+hexToRgb(CLIENTE.cor)+',.10)');
+  r.setProperty('--cl-mid',  'rgba('+hexToRgb(CLIENTE.cor)+',.20)');
+}
+function hexToRgb(h){
+  const n=parseInt(h,16);
+  return [(n>>16)&255,(n>>8)&255,n&255].join(',');
+}
+
+/* ══ INIT ════════════════════════════════════════════════════════════════════ */
+function init(){
+  applyColor();
+  document.getElementById('client-name').textContent = CLIENTE.nome;
+  document.getElementById('meta-setor').textContent  = CLIENTE.setor;
+  document.getElementById('meta-local').textContent  = CLIENTE.local;
+  document.getElementById('meta-data').textContent   = new Date().toLocaleDateString('pt-PT',{month:'long',year:'numeric'});
+  document.title = 'Lynx · '+CLIENTE.nome;
+
+  const r=CLIENTE.rating;
+  document.getElementById('rating-num').textContent  = r;
+  document.getElementById('reviews-num').textContent = CLIENTE.reviews+' reviews';
+  document.getElementById('last-reply').textContent  = CLIENTE.ultimaResposta;
+  document.getElementById('stars-display').textContent='★'.repeat(Math.round(r))+'☆'.repeat(5-Math.round(r));
+  const rp=document.getElementById('rating-pill');
+  if(r>=4.3){rp.className='p g';rp.textContent='Acima da média';}
+  else if(r>=4){rp.className='p a';rp.textContent='Na média';}
+  else{rp.className='p r';rp.textContent='Abaixo da média';}
+
+  CLIENTE.reviewsPos.forEach((rv,i)=>{
+    const e=document.getElementById('rev-pos-'+(i+1));
+    const m=document.getElementById('rev-pos-'+(i+1)+'-meta');
+    if(e) e.textContent='"'+rv.texto+'"';
+    if(m) m.textContent='— '+rv.autor+', Google · '+rv.quando;
+  });
+  CLIENTE.reviewsNeg.forEach((rv,i)=>{
+    const e=document.getElementById('rev-neg-'+(i+1));
+    const m=document.getElementById('rev-neg-'+(i+1)+'-meta');
+    if(e) e.textContent='"'+rv.texto+'"';
+    if(m) m.innerHTML='— '+rv.autor+' · <strong style="color:var(--red)">Sem resposta da clínica</strong>';
+  });
+
+  const sym=v=>v?'<span class="grn">✓</span>':'<span class="red">✗</span>';
+  const tbody=document.getElementById('concurr-table');
+  const hiRow=tbody.querySelector('tr.hi');
+  hiRow.cells[0].innerHTML='<strong>'+CLIENTE.nome.split(' ').slice(0,2).join(' ')+'</strong>';
+  hiRow.cells[1].innerHTML='<span class="amb">⭐ '+CLIENTE.rating+'</span>';
+  hiRow.cells[2].textContent=CLIENTE.reviews;
+  [3,4,5,6].forEach(i=>hiRow.cells[i].innerHTML=sym(false));
+
+  const rows=tbody.querySelectorAll('tr:not(.hi)');
+  CLIENTE.concorrentes.forEach((c,i)=>{
+    if(!rows[i])return;
+    rows[i].cells[0].textContent=c.nome;
+    rows[i].cells[1].innerHTML='<span class="grn">⭐ '+c.rating+'</span>';
+    rows[i].cells[2].textContent=c.reviews;
+    rows[i].cells[3].innerHTML=sym(c.web);
+    rows[i].cells[4].innerHTML=sym(c.agenda);
+    rows[i].cells[5].innerHTML=sym(c.respReviews);
+    rows[i].cells[6].innerHTML=sym(c.ads);
+  });
+
+  const leader=Math.max(...CLIENTE.concorrentes.map(c=>c.rating));
+  document.getElementById('gap-val').textContent='+'+(leader-CLIENTE.rating).toFixed(1)+'⭐';
+
+  ['f','w','o','t'].forEach(k=>CLIENTE.swot[k].forEach((t,i)=>{
+    const e=document.getElementById('sw-'+k+(i+1));if(e)e.textContent=t;
+  }));
+
+  document.getElementById('prop-setup').textContent='Desde '+CLIENTE.setup;
+  document.getElementById('prop-mensal').textContent=CLIENTE.mensal+'/mês';
+}
+
+/* ══ CALCULADORA ════════════════════════════════════════════════════════════ */
+function fmt(n){
+  if(n>=10000)return(n/1000).toFixed(1)+'k€';
+  if(n>=1000)return Math.round(n).toLocaleString('pt-PT')+'€';
+  return Math.round(n).toLocaleString('pt-PT')+'€';
+}
+function calcLive(){
+  const f=+document.getElementById('li-faltas').value||0;
+  const v=+document.getElementById('li-valor').value||0;
+  const a=+document.getElementById('li-admin').value||0;
+  const h=+document.getElementById('li-horas').value||0;
+  const s=+document.getElementById('li-salario').value||900;
+  const perdaM=f*4.33*v;
+  const adminM=a*h*21.7*(s/(21.7*8))*1.2375;
+  const totM=perdaM+adminM;
+  const totA=totM*12;
+  const setup=parseFloat(CLIENTE.setup.replace(',','.'))||2500;
+  const mensal=parseFloat(CLIENTE.mensal)||249;
+  const pb=totM>0?Math.ceil(setup/totM):null;
+  const roi=totM>0?Math.round(((totA-(setup+mensal*12))/(setup+mensal*12))*100):null;
+  document.getElementById('out-faltas-m').textContent=fmt(perdaM);
+  document.getElementById('out-admin-m').textContent=fmt(adminM);
+  document.getElementById('out-total-m').textContent=fmt(totM);
+  document.getElementById('out-total-a').textContent=fmt(totA);
+  document.getElementById('out-invest').textContent=mensal+'€/mês';
+  document.getElementById('out-payback').textContent=pb?pb+(pb===1?' mês':' meses'):'—';
+  document.getElementById('out-roi').textContent=roi?roi+'%':'—';
+  document.getElementById('fecho-custo').textContent=fmt(totM)+'/mês';
+  document.getElementById('fecho-payback').textContent=pb?pb+(pb===1?' mês':' meses'):'—';
+}
+['li-consultas','li-faltas','li-valor','li-admin','li-horas','li-salario'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',calcLive);
+});
+
+/* ══ NAVEGAÇÃO ══════════════════════════════════════════════════════════════ */
+const slides=document.querySelectorAll('.slide');
+const total=slides.length;
+let cur=0;
+let hideTimer=null;
+const navEl=document.getElementById('nav');
+
+function showNav(){
+  navEl.classList.remove('hidden');
+  clearTimeout(hideTimer);
+  hideTimer=setTimeout(()=>navEl.classList.add('hidden'),3000);
+}
+
+/* mostrar nav ao mover o rato */
+document.addEventListener('mousemove',showNav);
+document.addEventListener('touchstart',showNav);
+
+function buildDots(){
+  const wrap=document.getElementById('nav-dots');wrap.innerHTML='';
+  for(let i=0;i<total;i++){
+    const d=document.createElement('div');
+    d.className='dot'+(i===0?' on':'');
+    d.onclick=()=>goTo(i);
+    wrap.appendChild(d);
+  }
+}
+function goTo(n){
+  slides[cur].classList.remove('active');slides[cur].classList.add('exit');
+  setTimeout(()=>slides[cur].classList.remove('exit'),450);
+  cur=n;slides[cur].classList.add('active');
+  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i===cur));
+  document.getElementById('counter').textContent=(cur+1)+' / '+total;
+  document.getElementById('btn-prev').disabled=cur===0;
+  document.getElementById('btn-next').disabled=cur===total-1;
+  document.getElementById('prog').style.width=((cur+1)/total*100)+'%';
+  showNav();
+}
+function go(d){if(cur+d>=0&&cur+d<total)goTo(cur+d);}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown')go(1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp')go(-1);
+});
+
+/* ══ BOOT ═══════════════════════════════════════════════════════════════════ */
+buildDots();init();calcLive();
+showNav();
+</script>
+</body>
+</html>
