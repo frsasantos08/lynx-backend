@@ -54,7 +54,7 @@ app.post('/api/gerar-minisite', (req, res) => {
     const outputPath = path.join(REUNIAO_DIR, slugSeguro + '.html');
     fs.writeFileSync(outputPath, html, 'utf8');
 
-    const dominio = process.env.DOMAIN || 'lynxagency.pt';
+    const dominio = process.env.LYNX_DOMAIN || req.hostname;
     const url = 'https://' + dominio + '/' + slugSeguro + '.html';
 
     console.log('[OK] Mini-site gerado:', url);
