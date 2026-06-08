@@ -8,6 +8,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
+// serve ficheiros da pasta reuniao directamente na raiz
 app.use(express.static(path.join(__dirname, 'public', 'reuniao')));
 
 // Garante que a pasta existe
