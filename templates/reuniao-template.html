@@ -296,35 +296,21 @@ h2{font-family:'Instrument Serif',serif;font-size:clamp(28px,3vw,42px);line-heig
     <div class="col">
       <div style="font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--green);margin-bottom:6px">✓ Pontos fortes</div>
       <div class="rv">
-        <div class="rv-stars" id="rv-pos-1-stars">★★★★★ <span style="color:var(--muted2);font-size:11px">há 2 semanas</span></div>
-        <div class="rv-txt" id="rev-pos-1">"Excelente atendimento, médicos muito competentes. Recomendo a toda a gente da zona."</div>
-        <div class="rv-meta" id="rev-pos-1-meta">— Maria F., Google</div>
+        <div class="rv-stars">★★★★★ <span style="color:var(--muted2);font-size:11px" id="rv-pos-1-quando">recente</span></div>
+        <div class="rv-txt" id="rev-pos-1">"Excelente atendimento e profissionalismo."</div>
+        <div class="rv-meta" id="rev-pos-1-meta">— Cliente verificado, Google</div>
       </div>
       <div class="rv">
-        <div class="rv-stars" id="rv-pos-2-stars">★★★★★ <span style="color:var(--muted2);font-size:11px">há 1 mês</span></div>
-        <div class="rv-txt" id="rev-pos-2">"Clínica limpa e organizada. Nunca esperamos mais de 10 minutos."</div>
-        <div class="rv-meta" id="rev-pos-2-meta">— João A., Google</div>
+        <div class="rv-stars">★★★★★ <span style="color:var(--muted2);font-size:11px" id="rv-pos-2-quando">recente</span></div>
+        <div class="rv-txt" id="rev-pos-2">"Muito boa experiência. Recomendo."</div>
+        <div class="rv-meta" id="rev-pos-2-meta">— Cliente verificado, Google</div>
       </div>
-      <div class="c cl-b mt" style="margin-top:auto">
-        <div style="font-size:13px;color:var(--muted);font-weight:300;line-height:1.6">A qualidade clínica é reconhecida. O problema está na <strong style="color:var(--ink)">visibilidade</strong> e no <strong style="color:var(--ink)">acesso</strong>, não no serviço.</div>
+      <div class="c cl-b" style="margin-top:auto">
+        <div style="font-size:13px;color:var(--muted);font-weight:300;line-height:1.6">A qualidade do serviço é reconhecida pelos clientes. A oportunidade está em <strong style="color:var(--ink)">amplificar essa reputação</strong> com maior visibilidade digital.</div>
       </div>
     </div>
-    <div class="col">
-      <div style="font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--red);margin-bottom:6px">⚠ Pontos de melhoria</div>
-      <div class="rv neg">
-        <div class="rv-stars" style="color:var(--amber)">★★☆☆☆ <span style="color:var(--muted2);font-size:11px">há 3 meses</span></div>
-        <div class="rv-txt" id="rev-neg-1">"Difícil marcar por telefone. Toca mas ninguém atende. Acabei por ir a outra clínica."</div>
-        <div class="rv-meta" id="rev-neg-1-meta">— Ana M. · <strong style="color:var(--red)">Sem resposta da clínica</strong></div>
-      </div>
-      <div class="rv neg">
-        <div class="rv-stars" style="color:var(--amber)">★★★☆☆ <span style="color:var(--muted2);font-size:11px">há 5 meses</span></div>
-        <div class="rv-txt" id="rev-neg-2">"Boa clínica mas precisam de marcação online. Ligar para marcar é complicado."</div>
-        <div class="rv-meta" id="rev-neg-2-meta">— Carlos N. · <strong style="color:var(--red)">Sem resposta da clínica</strong></div>
-      </div>
-      <div class="c" style="background:var(--red-dim);border-color:rgba(229,62,62,.2);margin-top:auto">
-        <div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:7px;letter-spacing:.1em;text-transform:uppercase">💡 Resposta sugerida (IA)</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.65;font-style:italic">"Agradecemos o seu comentário. Lamentamos a dificuldade. Estamos a implementar marcação online 24h. Aguardamos uma nova oportunidade."</div>
-      </div>
+    <div class="col" id="col-neg">
+      <!-- preenchido pelo JavaScript consoante existam ou não reviews negativas -->
     </div>
   </div>
 </div>
@@ -589,18 +575,62 @@ function init(){
   else if(r>=4){rp.className='p a';rp.textContent='Na média';}
   else{rp.className='p r';rp.textContent='Abaixo da média';}
 
-  CLIENTE.reviewsPos.forEach((rv,i)=>{
-    const e=document.getElementById('rev-pos-'+(i+1));
-    const m=document.getElementById('rev-pos-'+(i+1)+'-meta');
-    if(e) e.textContent='"'+rv.texto+'"';
-    if(m) m.textContent='— '+rv.autor+', Google · '+rv.quando;
-  });
-  CLIENTE.reviewsNeg.forEach((rv,i)=>{
-    const e=document.getElementById('rev-neg-'+(i+1));
-    const m=document.getElementById('rev-neg-'+(i+1)+'-meta');
-    if(e) e.textContent='"'+rv.texto+'"';
-    if(m) m.innerHTML='— '+rv.autor+' · <strong style="color:var(--red)">Sem resposta da clínica</strong>';
-  });
+  /* ── REVIEWS POSITIVAS ── */
+CLIENTE.reviewsPos.forEach((rv, i) => {
+  const n = i + 1;
+  const txt = document.getElementById('rev-pos-' + n);
+  const meta = document.getElementById('rev-pos-' + n + '-meta');
+  const quando = document.getElementById('rv-pos-' + n + '-quando');
+  if (txt && rv.texto && rv.texto.length > 2) {
+    txt.textContent = '\u201C' + rv.texto + '\u201D';
+    if (meta) meta.textContent = '— ' + rv.autor + ', Google';
+    if (quando) quando.textContent = rv.quando || 'recente';
+  }
+});
+
+/* ── REVIEWS NEGATIVAS ou OPORTUNIDADES ── */
+const colNeg = document.getElementById('col-neg');
+
+if (CLIENTE.reviewsNeg && CLIENTE.reviewsNeg.length > 0 &&
+    CLIENTE.reviewsNeg[0].texto && CLIENTE.reviewsNeg[0].texto.length > 5) {
+
+  /* tem reviews negativas reais */
+  colNeg.innerHTML = `
+    <div style="font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--red);margin-bottom:6px">⚠ Pontos de melhoria</div>
+    ${CLIENTE.reviewsNeg.slice(0, 2).map(rv => `
+      <div class="rv neg">
+        <div class="rv-stars" style="color:var(--amber)">${'★'.repeat(Math.round(rv.rating || 2))}${'☆'.repeat(5 - Math.round(rv.rating || 2))} <span style="color:var(--muted2);font-size:11px">${rv.quando || ''}</span></div>
+        <div class="rv-txt">&#8220;${rv.texto}&#8221;</div>
+        <div class="rv-meta">— ${rv.autor} · <strong style="color:var(--red)">Sem resposta da clínica</strong></div>
+      </div>
+    `).join('')}
+    <div class="c" style="background:var(--red-dim);border-color:rgba(229,62,62,.2);margin-top:auto">
+      <div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:7px;letter-spacing:.1em;text-transform:uppercase">💡 Resposta sugerida (IA)</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.65;font-style:italic">"Agradecemos o seu comentário. Estamos a trabalhar para melhorar. Aguardamos uma nova oportunidade."</div>
+    </div>`;
+
+} else {
+
+  /* sem reviews negativas — mostra oportunidades de crescimento */
+  colNeg.innerHTML = `
+    <div style="font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--cl);margin-bottom:6px">🚀 Oportunidades identificadas</div>
+    <div class="c cl-b">
+      <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:8px">Reputação sólida — 5.0 ⭐</div>
+      <div style="font-size:13px;color:var(--muted);font-weight:300;line-height:1.65">Sem críticas negativas registadas. Esta é uma base excelente para crescer.</div>
+    </div>
+    <div class="c" style="margin-top:0">
+      <div style="font-size:13px;color:var(--muted);font-weight:300;line-height:1.7">
+        <strong style="color:var(--ink);display:block;margin-bottom:6px">→ Aumentar volume de reviews</strong>
+        Com um sistema automático de pedido de review após consulta, o número de avaliações cresce consistentemente — reforçando a posição no Google.
+      </div>
+    </div>
+    <div class="c" style="margin-top:0">
+      <div style="font-size:13px;color:var(--muted);font-weight:300;line-height:1.7">
+        <strong style="color:var(--ink);display:block;margin-bottom:6px">→ Amplificar a visibilidade digital</strong>
+        Uma reputação 5/5 com pouca visibilidade online é uma oportunidade perdida. O sistema Lynx coloca esta clínica nas pesquisas locais e nos motores de IA.
+      </div>
+    </div>`;
+}
 
   const sym=v=>v?'<span class="grn">✓</span>':'<span class="red">✗</span>';
   const tbody=document.getElementById('concurr-table');
