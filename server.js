@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public', 'reuniao')));
 
 // Garante que a pasta existe
 const REUNIAO_DIR = path.join(__dirname, 'public', 'reuniao');
@@ -55,7 +55,7 @@ app.post('/api/gerar-minisite', (req, res) => {
     fs.writeFileSync(outputPath, html, 'utf8');
 
     const dominio = process.env.DOMAIN || 'lynxagency.pt';
-    const url = 'https://' + dominio + '/reuniao/' + slugSeguro + '.html';
+    const url = 'https://' + dominio + '/' + slugSeguro + '.html';
 
     console.log('[OK] Mini-site gerado:', url);
     return res.json({ success: true, url, slug: slugSeguro });
