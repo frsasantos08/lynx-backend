@@ -575,6 +575,26 @@ function init(){
   else if(r>=4){rp.className='p a';rp.textContent='Na média';}
   else{rp.className='p r';rp.textContent='Abaixo da média';}
 
+  /* ── WEBSITE ── */
+const wsStatus = document.getElementById('website-status');
+const wsDetail = document.getElementById('website-detail');
+const wsCard   = wsStatus?.closest('.c');
+
+if (CLIENTE.website) {
+  if (wsStatus) {
+    wsStatus.textContent = 'Website activo';
+    wsStatus.style.color = 'var(--green)';
+  }
+  if (wsDetail) {
+    wsDetail.textContent = 'Presença online existente. Oportunidade de optimização para conversão e AI SEO.';
+  }
+  if (wsCard) {
+    wsCard.classList.remove('red-b');
+    wsCard.classList.add('cl-b');
+  }
+}
+/* se CLIENTE.website === false, mantém o texto e estilo por defeito */
+  
   /* ── REVIEWS POSITIVAS ── */
 CLIENTE.reviewsPos.forEach((rv, i) => {
   const n = i + 1;
