@@ -652,28 +652,65 @@ if (CLIENTE.reviewsNeg && CLIENTE.reviewsNeg.length > 0 &&
     </div>`;
 }
 
-  const sym=v=>v?'<span class="grn">✓</span>':'<span class="red">✗</span>';
-  const tbody=document.getElementById('concurr-table');
-  const hiRow=tbody.querySelector('tr.hi');
-  hiRow.cells[0].innerHTML='<strong>'+CLIENTE.nome.split(' ').slice(0,2).join(' ')+'</strong>';
-  hiRow.cells[1].innerHTML='<span class="amb">⭐ '+CLIENTE.rating+'</span>';
-  hiRow.cells[2].textContent=CLIENTE.reviews;
-  [3,4,5,6].forEach(i=>hiRow.cells[i].innerHTML=sym(false));
+/* ── TABELA CONCORRENTES (slide 4) ── */
+const sym = v => v
+  ? '<span class="grn">✓</span>'
+  : '<span class="red">✗</span>';
 
-  const rows=tbody.querySelectorAll('tr:not(.hi)');
-  CLIENTE.concorrentes.forEach((c,i)=>{
-    if(!rows[i])return;
-    rows[i].cells[0].textContent=c.nome;
-    rows[i].cells[1].innerHTML='<span class="grn">⭐ '+c.rating+'</span>';
-    rows[i].cells[2].textContent=c.reviews;
-    rows[i].cells[3].innerHTML=sym(c.web);
-    rows[i].cells[4].innerHTML=sym(c.agenda);
-    rows[i].cells[5].innerHTML=sym(c.respReviews);
-    rows[i].cells[6].innerHTML=sym(c.ads);
-  });
+const hiRow = document.querySelector('#concurr-table tr.hi');
+if (hiRow) {
+  hiRow.cells[0].innerHTML = '<strong>' + CLIENTE.nome + '</strong>';
 
-  const leader=Math.max(...CLIENTE.concorrentes.map(c=>c.rating));
-  document.getElementById('gap-val').textContent='+'+(leader-CLIENTE.rating).toFixed(1)+'⭐';
+  /* rating com cor dinâmica */
+  const ratingCl = CLIENTE.rating >= 4.3 ? 'grn' : CLIENTE.rating >= 4 ? 'amb' : 'red';
+  hiRow.cells[1].innerHTML = '<span class="' + ratingCl + '">⭐ ' + CLIENTE.rating + '</span>';
+  hiRow.cells[2].textContent = CLIENTE.reviews;
+
+  /* website — usa dado real do CLIENTE */
+  hiRow.cells[3].innerHTML = sym(CLIENTE.website);
+
+  /* agendamento online — por defeito não existe (o sistema Lynx vai criar) */
+  hiRow.cells[4].innerHTML = sym(false);
+
+  /* resposta a reviews — por defeito não */
+  hiRow.cells[5].innerHTML = sym(false);
+
+  /* google ads — por defeito não */
+  hiRow.cells[6].innerHTML = sym(false);
+}
+
+/* linhas dos concorrentes */
+const concRows = document.querySelectorAll('#concurr-table tr:not(.hi)');
+CLIENTE.concorrentes.forEach((c, i) => {
+  if (!concRows[i]) return;
+  concRows[i].cells[0].textContent = c.nome;
+
+  const rc = c.rating >= 4.3 ? 'grn' : c.rating >= 4 ? 'amb' : 'red';
+  concRows[i].cells[1].innerHTML = '<span class="' + rc + '">⭐ ' + c.rating + '</span>';
+  concRows[i].cells[2].textContent = c.reviews || '—';
+  concRows[i].cells[3].innerHTML = sym(c.web);
+  concRows[i].cells[4].innerHTML = sym(c.agenda);
+  concRows[i].cells[5].innerHTML = sym(c.respReviews);
+  concRows[i].cells[6].innerHTML = sym(c.ads);
+});
+
+/* gap para o líder */
+const leader = CLIENTE.concorrentes.length > 0
+  ? Math.max(...CLIENTE.concorrentes.map(c => c.rating || 0))
+  : CLIENTE.rating;
+const gap = (leader - CLIENTE.rating).toFixed(1);
+const gapEl = document.getElementById('gap-val');
+if (gapEl) {
+  if (parseFloat(gap) <= 0) {
+    gapEl.textContent = 'Líder local';
+    gapEl.style.fontSize = '22px';
+    /* ajusta o texto do card em baixo */
+    const cardText = gapEl.closest('.c')?.querySelector('div[style*="font-size:13px"]');
+    if (cardText) cardText.innerHTML = 'A <strong style="color:var(--ink)">' + CLIENTE.nome + '</strong> é o negócio com mais reviews da área. A oportunidade está em amplificar esta posição com agendamento online e AI SEO.';
+  } else {
+    gapEl.textContent = '+' + gap + '⭐';
+  }
+}
 
   ['f','w','o','t'].forEach(k=>CLIENTE.swot[k].forEach((t,i)=>{
     const e=document.getElementById('sw-'+k+(i+1));if(e)e.textContent=t;
